@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admeshion-gateway
+  namespace: admeshion-system
+  labels:
+    app: admeshion-gateway
+    app.kubernetes.io/name: admeshion
+    app.kubernetes.io/component: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: admeshion-gateway
+  template:
+    metadata:
+      labels:
+        app: admeshion-gateway
+        app.kubernetes.io/name: admeshion
+        app.kubernetes.io/component: gateway
+    spec:
+      serviceAccountName: admeshion-gateway
+      containers:
+      - name: gateway
+        image: admeshion/gateway:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8443
+          name: webhook
+          protocol: TCP
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "8443"
+        - name: CERT_PATH
+          value: "/etc/certs/tls.crt"
+        - name: KEY_PATH
+          value: "/etc/certs/tls.key"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: TIMEOUT
+          value: "10s"
+        - name: MAX_PARALLEL
+          value: "10"
+        volumeMounts:
+        - name: certs
+          mountPath: /etc/certs
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: certs
+        secret:
+          secretName: admeshion-gateway-certs
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        operator: Exists

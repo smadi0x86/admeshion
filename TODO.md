@@ -1,0 +1,1 @@
+- [ ] Implement Custom Resource Definitions (CRDs) for agents instead of the current hardcoded agents

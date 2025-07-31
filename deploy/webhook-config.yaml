@@ -1,0 +1,43 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: admeshion-gateway
+  labels:
+    app: admeshion-gateway
+    component: admission-control
+webhooks:
+- name: pod-validation.admeshion.io
+  clientConfig:
+    service:
+      name: admeshion-gateway
+      namespace: admeshion-system
+      path: "/validate"
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURoVENDQW0yZ0F3SUJBZ0lVUnYzOU9OaTViVzBKS3oxZjdhSUlrZWQrcUFrd0RRWUpLb1pJaHZjTkFRRUwKQlFBd1VqRUxNQWtHQTFVRUJoTUNWVk14Q3pBSkJnTlZCQWdNQWtOQk1Rc3dDUVlEVlFRSERBSlRSakVTTUJBRwpBMVVFQ2d3SlFXUnRaWE5vYVc5dU1SVXdFd1lEVlFRRERBeEJaRzFsYzJocGIyNGdRMEV3SGhjTk1qVXdOek14Ck1EWXpOakkyV2hjTk1qWXdOek14TURZek5qSTJXakJTTVFzd0NRWURWUVFHRXdKVlV6RUxNQWtHQTFVRUNBd0MKUTBFeEN6QUpCZ05WQkFjTUFsTkdNUkl3RUFZRFZRUUtEQWxCWkcxbGMyaHBiMjR4RlRBVEJnTlZCQU1NREVGawpiV1Z6YUdsdmJpQkRRVENDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFKTEhtMWRvCndpYzdGekdmbWl4TWlmczFPNmJqU1R1T01sK2FTNFBBV3hnOVQwTFZhUCtGRmlCdTFnYVRWbmhjWEIwbWw3SGUKQnlxaEgwTW5UdUtmYzJQK0FuUzQ5dXRVQjFaYm1aNjBROUJxdGJZS01hV0RsUmJGNXhFdmJiWk5NMXkrempIWQoxVjZlNmYzcksraWorUDd2ZGJHY0V1b25XNGo2Um1GQVQyZmlDV2VwamlleDM2VmlzQ1hKRVR0a3EwaGdXcHlJCmx4N1NUNUptQmlZNDI0VHlxOUFjdFI3Q3hXV1lVaytHblJTcW5PZ0lHdk1YbnZnU2dDaFk3ZzZ0VFM4ZVBiTFYKZjc5Q29sQTRrMTVSQ0hEMVBmQVRleGp5NTF1UnpyMU9PRXJYL2dBK24xTWpKWUo0NnNXMkZ4NmxiQUF4bEc3UQppSThEMCtVUmlacW53cE1DQXdFQUFhTlRNRkV3SFFZRFZSME9CQllFRkVaaEV3UW9wT0RsMUtjSmU1V0dFUUFzCmM4Q2lNQjhHQTFVZEl3UVlNQmFBRkVaaEV3UW9wT0RsMUtjSmU1V0dFUUFzYzhDaU1BOEdBMVVkRXdFQi93UUYKTUFNQkFmOHdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBQlMrSW9XTlBxeVB4UFY3WHZEakl6NXVTa0RNSmRtZQpCejk3c3UrL1JvbkQ2Qm53bWVTb3JrbTByOXBGU3hROWVOdDlNOVFPVWdsTG15WTRpeVFzTTZROEtNRWhMdXBrCkw5WEUwbGZxeWxwZEZ4Q3BZTGhuNXNTQVFpT1BacEVCcFNWdXZ2bDk0dXhZZEdhWHd4QVhUZkF0R2IwR0RLNlQKSDhXVWVObHZRbFY5ZjlISFIyR1FjTVE1TVJZUklPSGwrY3pFRHVXZjBWeUJob0l6a2pqRXVUa1lKaEZmVytINQpHdlRaeWMrZXFsMGlBQXA4UVprSElaWG9oRU1vTUx2WkQva1RVTDlWdS9xdk00V3ZocSs2Q1I0SWJab1pHWXkyCnJYb3JScVNIcEQrUGo5TVM1c3RzdHJiV1FBeXF1bGI4UVZsRGpFemJMSGdJRHJzUWthZU05RUk9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K # Base64 encoded CA certificate
+  rules:
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: [""]
+    apiVersions: ["v1"]
+    resources: ["pods"]
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: ["apps"]
+    apiVersions: ["v1"]
+    resources: ["deployments", "daemonsets", "statefulsets"]
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: ["batch"]
+    apiVersions: ["v1", "v1beta1"]
+    resources: ["jobs", "cronjobs"]
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: [""]
+    apiVersions: ["v1"]
+    resources: ["services", "configmaps", "secrets"]
+  admissionReviewVersions: ["v1", "v1beta1"]
+  sideEffects: None
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  namespaceSelector:
+    matchExpressions:
+    - key: name
+      operator: NotIn
+      values: ["kube-system", "kube-public", "admeshion-system"]
+  objectSelector: {}
+  timeoutSeconds: 10
